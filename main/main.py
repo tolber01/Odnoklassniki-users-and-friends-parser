@@ -1,10 +1,10 @@
 from odnoklassniki import Odnoklassniki
 
 
-CLIENT = r"CBAKIBKMEBABABABA"
-SECRET = r"08097B8BD95218A55BD5EF52"
-ACCESS_TOKEN = \
-    r"tkn1Inmu3moGvGUD6GWgPPq2zXKBEKtsZyF4YwC7Yc7DRvcl1NZ11fFIzzuIUvmeXs48P0"
+CLIENT = r""
+SECRET = r""
+ACCESS_TOKEN = r""
+# Enter your app's serial data here.  
 
 ok_object = Odnoklassniki(
     CLIENT,
