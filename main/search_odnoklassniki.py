@@ -1,4 +1,4 @@
-from multiprocessing import Pool
+from multiprocessing.dummy import Pool
 from functools import partial
 from odnoklassniki import Odnoklassniki, OdnoklassnikiError
 
@@ -7,7 +7,7 @@ def get_query_info():
     """Function reads query information by keyboard enter by user: text of
     query, date of the birth: day, month, year.
 
-    :return: text (str), day (str), month (str), year (str)
+    :return: text (str), day (int), month (int), year (int)
     """
     text = input(
         "Enter your text query (the name and the last name) here: "
@@ -117,6 +117,7 @@ def work_with_user(any_user, client, secret, token, fields):
                 any_user["friends"] += friends
 
         print(any_user)
+        # Work with finally processed user here
 
 if __name__ == "__main__":
     CLIENT_KEY = r""
@@ -137,6 +138,9 @@ if __name__ == "__main__":
     # You can find another fields here:
     # https://apiok.ru/dev/types/data.UserInfoField
     MAX_NUMBER_OF_RESULTS = 100
+    TYPE_OF_RESULTS = "USER"
+
+    NUMBER_OF_PROCESSES = 20
 
     text_query, day_of_birth, month_of_birth, year_of_birth = get_query_info()
 
@@ -162,7 +166,7 @@ if __name__ == "__main__":
     while has_more_users:
         response_object = ok_object.search.quick(
             query=text_query,
-            types="USER",
+            types=TYPE_OF_RESULTS,
             fields=fields_parameter,
             filters=filters_parameter,
             anchor=anchor_parameter,
@@ -176,7 +180,7 @@ if __name__ == "__main__":
             break
     print("Users found:", len(users_objects_list))
 
-    p = Pool(20)
+    p = Pool(NUMBER_OF_PROCESSES)
 
     p.map(
         partial(
