@@ -4,35 +4,88 @@ from odnoklassniki import Odnoklassniki, OdnoklassnikiError
 
 
 def get_query_info():
+    """Function reads query information by keyboard enter by user: text of
+    query, date of the birth: day, month, year.
+
+    :return: text (str), day (str), month (str), year (str)
+    """
     text = input(
         "Enter your text query (the name and the last name) here: "
     )
     print("Now input the date of the birth")
-    day = input("Day: ")
-    month = input("Month: ")
-    year = input("Year: ")
+    try:
+        day = int(input("Day: "))
+    except ValueError:
+        day = 0
+
+    try:
+        month = int(input("Month: "))
+    except ValueError:
+        month = 0
+
+    try:
+        year = int(input("Year: "))
+    except ValueError:
+        year = 0
 
     return text, day, month, year
 
 
 def get_filters_parameter(day, month, year):
-    filters = {
+    """Function gets birthday info (day, month, year) as arguments and
+    returns filters parameter in string format.
+
+    :param day: the day of the birth
+    :type day: int
+    :param month: the month of the birth
+    :type month: int
+    :param year: the year of the birth
+    :type year: int
+    :return: filters_string (str)
+    """
+    filters = [{"type": "user"}]
+    filters[0].update({
         key: value for key, value in zip(
             ("birthDay", "birthMonth", "birthYear"),
             (day, month, year)
         ) if value
-    }
-    filters["type"] = "user"
-    filters = str([filters]).replace("'", '"')
+    })
+    filters_string = str(filters).replace("'", '"')
 
-    return filters
+    return filters_string
 
 
 def get_fields_parameter(fields_names):
-    return ", ".join(["user." + field for field in fields_names])
+    """Function gets fields_names sequence and returns fields
+    parameter in string format.
+
+    :param fields_names: sequence of result fields in response
+    :type fields_names: tuple
+    :return: fields_string (str)
+    """
+    fields_string = ", ".join(
+        ["user." + field.lower() for field in fields_names]
+    )
+
+    return fields_string
 
 
 def work_with_user(any_user, client, secret, token, fields):
+    """Procedure works with user object, add to this object user's
+    friends objects as list, print finally processed user object.
+
+    :param any_user: user object with information from response
+    :type any_user: dict
+    :param client: client odnoklassniki application key
+    :type client: str
+    :param secret: secret odnoklassniki application key
+    :type secret: str
+    :param token: odnoklassniki application access token
+    :type token: str
+    :param fields: using fields of response parameter
+    :type fields: str
+    :return: None
+    """
     ok = Odnoklassniki(
         client,
         secret,
@@ -66,19 +119,20 @@ def work_with_user(any_user, client, secret, token, fields):
         print(any_user)
 
 if __name__ == "__main__":
-    CLIENT = r""
-    SECRET = r""
+    CLIENT_KEY = r""
+    SECRET_KEY = r""
     ACCESS_TOKEN = r""
     # Enter your app's serial data here.
 
     FIELDS_OF_RESULTS = (
-        "NAME",
-        "BIRTHDAY",
         "AGE",
-        "CITY_OF_BIRTH",
+        "BIRTHDAY",
+        "FIRST_NAME",
+        "LAST_NAME",
+        "LOCATION",
+        "PIC640X480",
         "UID",
-        "URL_PROFILE",
-        "PIC640X480"
+        "URL_PROFILE"
     )
     # You can find another fields here:
     # https://apiok.ru/dev/types/data.UserInfoField
@@ -91,12 +145,13 @@ if __name__ == "__main__":
         month_of_birth,
         year_of_birth
     )
+    print(filters_parameter)
 
     fields_parameter = get_fields_parameter(FIELDS_OF_RESULTS)
 
     ok_object = Odnoklassniki(
-        CLIENT,
-        SECRET,
+        CLIENT_KEY,
+        SECRET_KEY,
         ACCESS_TOKEN
     )
 
@@ -123,11 +178,11 @@ if __name__ == "__main__":
 
     p = Pool(20)
 
-    results = p.map(
+    p.map(
         partial(
             work_with_user,
-            client=CLIENT,
-            secret=SECRET,
+            client=CLIENT_KEY,
+            secret=SECRET_KEY,
             token=ACCESS_TOKEN,
             fields=fields_parameter
         ),
