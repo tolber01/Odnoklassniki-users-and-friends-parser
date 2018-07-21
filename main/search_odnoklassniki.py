@@ -119,13 +119,14 @@ def work_with_user(any_user, client, secret, token, fields):
         print(any_user)
         # Work with finally processed user here
 
+
 if __name__ == "__main__":
-    CLIENT_KEY = r""
-    SECRET_KEY = r""
-    ACCESS_TOKEN = r""
+    CLIENT_KEY: str = r""
+    SECRET_KEY: str = r""
+    ACCESS_TOKEN: str = r""
     # Enter your app's serial data here.
 
-    FIELDS_OF_RESULTS = (
+    FIELDS_OF_RESULTS: tuple = (
         "AGE",
         "BIRTHDAY",
         "FIRST_NAME",
@@ -137,10 +138,10 @@ if __name__ == "__main__":
     )
     # You can find another fields here:
     # https://apiok.ru/dev/types/data.UserInfoField
-    MAX_NUMBER_OF_RESULTS = 100
-    TYPE_OF_RESULTS = "USER"
+    MAX_NUMBER_OF_RESULTS: int = 100
+    TYPE_OF_RESULTS: str = "USER"
 
-    NUMBER_OF_PROCESSES = 20
+    NUMBER_OF_PROCESSES: int = 20
 
     text_query, day_of_birth, month_of_birth, year_of_birth = get_query_info()
 
