@@ -1,6 +1,4 @@
-from multiprocessing.dummy import Pool
-from functools import partial
-from odnoklassniki import Odnoklassniki, OdnoklassnikiError
+from odnoklassniki import Odnoklassniki
 
 
 def get_query_info():
@@ -70,54 +68,21 @@ def get_fields_parameter(fields_names):
     return fields_string
 
 
-def work_with_user(any_user, client, secret, token, fields):
-    """Procedure works with user object, add to this object user's
-    friends objects as list, print finally processed user object.
+def print_users(users_list):
+    """Procedure prints each user of the users_list.
 
-    :param any_user: user object with information from response
-    :type any_user: dict
-    :param client: client odnoklassniki application key
-    :type client: str
-    :param secret: secret odnoklassniki application key
-    :type secret: str
-    :param token: odnoklassniki application access token
-    :type token: str
-    :param fields: using fields of response parameter
-    :type fields: str
+    :param users_list: list containing users dicts
+    :type users_list: list
     :return: None
     """
-    ok = Odnoklassniki(
-        client,
-        secret,
-        token
-    )
-
-    any_user["friends"] = []
-
-    try:
-        user_friends_ids = ok.friends.get(fid=any_user["uid"])
-    except OdnoklassnikiError:
-        user_friends_ids = []
-    finally:
-        if user_friends_ids:
-            if len(user_friends_ids) > 100:
-                while len(user_friends_ids) > 100:
-                    friends = ok.users.getInfo(
-                        uids=", ".join(user_friends_ids[0:100]),
-                        fields=fields
-                    )
-                    any_user["friends"] += friends
-
-                    user_friends_ids = user_friends_ids[100:]
-            else:
-                friends = ok.users.getInfo(
-                    uids=", ".join(user_friends_ids[0:100]),
-                    fields=fields
-                )
-                any_user["friends"] += friends
-
-        print(any_user)
-        # Work with finally processed user here
+    for user in users_list:
+        print({
+            "id": user["uid"],
+            "name": user["first_name"],
+            "last_name": user["last_name"],
+            "birthday": user["birthday"],
+            "city": user["location"]["city"]
+        })
 
 
 if __name__ == "__main__":
@@ -127,21 +92,16 @@ if __name__ == "__main__":
     # Enter your app's serial data here.
 
     FIELDS_OF_RESULTS: tuple = (
-        "AGE",
         "BIRTHDAY",
         "FIRST_NAME",
         "LAST_NAME",
         "LOCATION",
-        "PIC640X480",
         "UID",
-        "URL_PROFILE"
     )
     # You can find another fields here:
     # https://apiok.ru/dev/types/data.UserInfoField
     MAX_NUMBER_OF_RESULTS: int = 100
     TYPE_OF_RESULTS: str = "USER"
-
-    NUMBER_OF_PROCESSES: int = 20
 
     text_query, day_of_birth, month_of_birth, year_of_birth = get_query_info()
 
@@ -150,8 +110,6 @@ if __name__ == "__main__":
         month_of_birth,
         year_of_birth
     )
-    print(filters_parameter)
-
     fields_parameter = get_fields_parameter(FIELDS_OF_RESULTS)
 
     ok_object = Odnoklassniki(
@@ -161,6 +119,7 @@ if __name__ == "__main__":
     )
 
     has_more_users = True
+    first_iteration = True
     users_objects_list = []
     anchor_parameter = ""
 
@@ -174,25 +133,14 @@ if __name__ == "__main__":
             count=MAX_NUMBER_OF_RESULTS
         )
         try:
-            users_objects_list.extend(response_object["entities"]["users"])
+            if first_iteration:
+                print("Found users:", response_object["totalCount"])
+                first_iteration = not first_iteration
+
+            users_objects_list = response_object["entities"]["users"]
             has_more_users = response_object["has_more"]
             anchor_parameter = response_object["anchor"]
         except KeyError:
             break
-    print("Users found:", len(users_objects_list))
-
-    p = Pool(NUMBER_OF_PROCESSES)
-
-    p.map(
-        partial(
-            work_with_user,
-            client=CLIENT_KEY,
-            secret=SECRET_KEY,
-            token=ACCESS_TOKEN,
-            fields=fields_parameter
-        ),
-        users_objects_list
-    )
-
-    p.close()
-    p.join()
+        else:
+            print_users(users_objects_list)
